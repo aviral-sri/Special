@@ -1,140 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Romantic Timeline</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-storage-compat.js"></script>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/animations.css">
-    <link rel="stylesheet" href="css/responsive.css">
+  <meta charset="UTF-8">
+  <!-- Mobile-first viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Romantic Timeline</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+  
+  <style>
+    /* Password Screen */
+    #passwordScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Heart Shower Animation */
+    .heart {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1999;
+      animation: fall linear forwards;
+      will-change: transform;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0.6;
+      }
+    }
+
+    /* Birthday Message */
+    #birthdayMessage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(233,30,99,0.9);
+      color: white;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: bold;
+      text-align: center;
+      z-index: 1999;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    /* Main Content */
+    #mainContent {
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      background: #fff;
+      min-height: 100vh;
+    }
+  </style>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- Password Screen -->
-    <div id="passwordScreen">
-        <h2>Enter Password</h2>
-        <input type="password" id="passwordInput" placeholder="Password">
-        <button class="btn" onclick="checkPassword()">Enter</button>
-    </div>
+  <!-- Password Screen -->
+  <div id="passwordScreen">
+    <h2>Enter Password</h2>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button class="btn" onclick="Auth.checkPassword()">Enter</button>
+  </div>
 
-    <!-- Birthday Message -->
-    <div id="birthdayMessage">
-        Happy Birthday Shailu! ❤️
-    </div>
+  <!-- Birthday Message -->
+  <div id="birthdayMessage">
+    Happy Birthday Shailu! ❤️
+  </div>
 
+  <!-- Main Content -->
+  <div id="mainContent">
     <!-- Tabs Navigation -->
     <div class="tabs">
-        <button class="tab-link active" data-tab="timelineTab">Timeline</button>
-        <button class="tab-link" data-tab="notesTab">Notes</button>
-        <button class="tab-link" data-tab="photosTab">Photos</button>
+      <button class="tab-link active" data-tab="timelineTab">Timeline</button>
+      <button class="tab-link" data-tab="notesTab">Notes</button>
+      <button class="tab-link" data-tab="photosTab">Photos</button>
     </div>
 
     <!-- Tab Contents -->
     <div id="timelineTab" class="tab-content active">
-        <div class="anniversary-message" id="anniversaryMessage">
-            Happy Anniversary! ❤️
+      <div class="anniversary-message" id="anniversaryMessage">
+        Happy Anniversary! ❤️
+      </div>
+      <div class="countdown-container">
+        <div class="countdown-title">Time Together</div>
+        <div class="countdown-grid">
+          <div class="countdown-item">
+            <div class="count" id="years">0</div>
+            <div class="label">Years</div>
+          </div>
+          <div class="countdown-item">
+            <div class="count" id="months">0</div>
+            <div class="label">Months</div>
+          </div>
+          <div class="countdown-item">
+            <div class="count" id="days">0</div>
+            <div class="label">Days</div>
+          </div>
+          <div class="countdown-item">
+            <div class="count" id="hours">0</div>
+            <div class="label">Hours</div>
+          </div>
+          <div class="countdown-item">
+            <div class="count" id="minutes">0</div>
+            <div class="label">Minutes</div>
+          </div>
+          <div class="countdown-item">
+            <div class="count" id="seconds">0</div>
+            <div class="label">Seconds</div>
+          </div>
         </div>
-        <div class="countdown-container">
-            <div class="countdown-title">Time Together</div>
-            <div class="countdown-grid">
-                <div class="countdown-item">
-                    <div class="count" id="years">0</div>
-                    <div class="label">Years</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="count" id="months">0</div>
-                    <div class="label">Months</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="count" id="days">0</div>
-                    <div class="label">Days</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="count" id="hours">0</div>
-                    <div class="label">Hours</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="count" id="minutes">0</div>
-                    <div class="label">Minutes</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="count" id="seconds">0</div>
-                    <div class="label">Seconds</div>
-                </div>
-            </div>
-        </div>
-        <h2>Our Relationship Timeline</h2>
-        <div class="timeline" id="timeline">
-            <svg id="timelineSVG">
-                <path id="timelinePath" stroke="#e91e63" stroke-width="2" stroke-dasharray="4,4" fill="none" />
-            </svg>
-        </div>
+      </div>
+      <h2>Our Relationship Timeline</h2>
+      <div class="timeline" id="timeline">
+        <svg id="timelineSVG">
+          <path id="timelinePath" 
+            stroke="#e91e63" stroke-width="2" stroke-dasharray="4,4" fill="none" />
+        </svg>
+        <!-- Event dots will be added dynamically -->
+      </div>
     </div>
 
     <div id="notesTab" class="tab-content">
-        <h2>Notes</h2>
-        <textarea id="notesArea" rows="5" placeholder="Write your special moments here..."></textarea>
-        <button id="saveNotesBtn" class="btn">Save Notes</button>
-        <div class="notes-container" id="notesContainer"></div>
+      <h2>Notes</h2>
+      <textarea id="notesArea" rows="5" placeholder="Write your special moments here..."></textarea>
+      <button id="saveNotesBtn" class="btn">Save Notes</button>
+      <div class="notes-container" id="notesContainer">
+        <!-- Saved notes will be shown here -->
+      </div>
     </div>
 
     <div id="photosTab" class="tab-content">
-        <h2>Photos</h2>
-        <div class="photos-grid" id="photosContainer"></div>
-        <button id="addPhotoBtn" class="btn" style="margin-top: 15px;">Add Photo</button>
+      <h2>Photos</h2>
+      <div class="photos-grid" id="photosContainer">
+        <!-- Photo items will be added here -->
+      </div>
+      <button id="addPhotoBtn" class="btn" style="margin-top: 15px;">Add Photo</button>
     </div>
 
-    <!-- Modals -->
+    <!-- Enhanced Modal Popup for Event Details -->
     <div class="modal" id="eventModal">
-        <div class="modal-content">
-            <span class="close" id="modalClose">&times;</span>
-            <h3>Event Details</h3>
-            <div class="form-group">
-                <label>Date</label>
-                <input type="date" id="eventDate">
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="eventDescription" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Photo</label>
-                <input type="file" id="eventPhoto" accept="image/*">
-            </div>
-            <button class="btn" id="saveEventBtn">Save Event</button>
+      <div class="modal-content">
+        <span class="close" id="modalClose">&times;</span>
+        <h3>Event Details</h3>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="eventDate">
         </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="eventDescription" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Photo</label>
+          <input type="file" id="eventPhoto" accept="image/*">
+        </div>
+        <button class="btn" id="saveEventBtn">Save Event</button>
+      </div>
     </div>
 
+    <!-- Photo Modal -->
     <div id="photoModal" class="modal">
-        <div class="photo-modal-content">
-            <span class="photo-modal-close">&times;</span>
-            <img id="modalImage" src="" alt="Event Photo">
-            <div class="event-info">
-                <div class="event-date" id="modalEventDate"></div>
-                <div class="event-description" id="modalEventDescription"></div>
-            </div>
+      <div class="photo-modal-content">
+        <span class="photo-modal-close">&times;</span>
+        <img id="modalImage" src="" alt="Event Photo">
+        <div class="event-info">
+          <div class="event-date" id="modalEventDate"></div>
+          <div class="event-description" id="modalEventDescription"></div>
         </div>
+      </div>
     </div>
 
+    <!-- Code Input Modal -->
     <div class="code-modal" id="codeModal">
-        <div class="code-modal-content">
-            <h3>Enter Secret Code</h3>
-            <input type="password" class="code-input" id="codeInput" maxlength="4" placeholder="****">
-            <button class="btn" id="verifyCodeBtn">Verify</button>
-        </div>
+      <div class="code-modal-content">
+        <h3>Enter Secret Code</h3>
+        <input type="password" class="code-input" id="codeInput" maxlength="4" placeholder="****">
+        <button class="btn" id="verifyCodeBtn">Verify</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Custom JavaScript -->
-    <script src="js/config/firebase-config.js"></script>
-    <script src="js/modules/auth.js"></script>
-    <script src="js/modules/timeline.js"></script>
-    <script src="js/modules/notes.js"></script>
-    <script src="js/modules/photos.js"></script>
-    <script src="js/modules/countdown.js"></script>
-    <script src="js/main.js"></script>
+  <!-- Custom JavaScript -->
+  <script src="js/config/firebase-config.js"></script>
+  <script src="js/modules/auth.js"></script>
+  <script src="js/modules/timeline.js"></script>
+  <script src="js/modules/notes.js"></script>
+  <script src="js/modules/photos.js"></script>
+  <script src="js/modules/countdown.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    // Initialize modules after DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Hide main content initially
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('birthdayMessage').style.display = 'none';
+    });
+  </script>
 </body>
-</html> 
+</html>

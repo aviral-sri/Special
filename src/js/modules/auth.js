@@ -1,54 +1,105 @@
 // Authentication Module
 const Auth = {
-    // Password protection
+    // Initialize authentication
+    init() {
+        // Add enter key handler for password input
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.checkPassword();
+            }
+        });
+
+        // Hide main content initially
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('birthdayMessage').style.display = 'none';
+    },
+
+    // Check password
     checkPassword() {
         const password = document.getElementById('passwordInput').value;
         if (password === 'KRISHNA') {
-            document.getElementById('passwordScreen').style.display = 'none';
-            this.showHeartShower();
-            this.showBirthdayMessage();
+            // Get all elements
+            const passwordScreen = document.getElementById('passwordScreen');
+            const mainContent = document.getElementById('mainContent');
+            const birthdayMessage = document.getElementById('birthdayMessage');
             
-            // Show main content after delay
+            // Prepare main content but keep it hidden
+            mainContent.style.display = 'block';
+            mainContent.style.opacity = '0';
+            
+            // Start fade out of password screen
+            passwordScreen.style.opacity = '0';
+            
             setTimeout(() => {
-                document.querySelectorAll('.tabs, .tab-content').forEach(el => {
-                    el.style.display = '';
-                });
-                // Initial renders
-                window.Countdown.updateCountdown();
-                window.Timeline.checkAnniversary();
-                window.Timeline.renderTimeline();
-                window.Photos.renderPhotos();
-                window.Notes.renderNotes();
-            }, 2000);
+                passwordScreen.style.display = 'none';
+                
+                // Show heart shower
+                this.showHeartShower();
+                
+                // Show birthday message after a short delay
+                setTimeout(() => {
+                    birthdayMessage.style.display = 'flex';
+                    birthdayMessage.style.opacity = '1';
+                    
+                    // Hide birthday message after 2 seconds
+                    setTimeout(() => {
+                        birthdayMessage.style.opacity = '0';
+                        
+                        // Show main content after birthday message fades
+                        setTimeout(() => {
+                            birthdayMessage.style.display = 'none';
+                            mainContent.style.opacity = '1';
+                            
+                            // Initialize modules
+                            if (typeof Timeline !== 'undefined') Timeline.init();
+                            if (typeof Notes !== 'undefined') Notes.init();
+                            if (typeof Photos !== 'undefined') Photos.init();
+                            if (typeof Countdown !== 'undefined') Countdown.init();
+                        }, 1000);
+                    }, 2000);
+                }, 500);
+            }, 500);
         } else {
             alert('Incorrect password!');
+            document.getElementById('passwordInput').value = '';
         }
     },
 
-    // Heart shower animation
+    // Show heart shower animation
     showHeartShower() {
+        const symbols = ['❤️', '💖', '💕', '💗', '💝'];
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.pointerEvents = 'none';
+        container.style.zIndex = '1999';
+        document.body.appendChild(container);
+        
+        // Create multiple hearts with different delays
         for (let i = 0; i < 100; i++) {
             setTimeout(() => {
                 const heart = document.createElement('div');
                 heart.className = 'heart';
-                heart.innerHTML = '❤️';
+                heart.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
                 heart.style.left = Math.random() * 100 + 'vw';
-                heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                document.body.appendChild(heart);
+                heart.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                heart.style.fontSize = (Math.random() * 20 + 25) + 'px';
                 
-                setTimeout(() => heart.remove(), 5000);
+                container.appendChild(heart);
+                
+                // Remove heart after animation
+                setTimeout(() => {
+                    heart.remove();
+                    if (container.children.length === 0) {
+                        container.remove();
+                    }
+                }, 4000);
             }, i * 50);
         }
-    },
-
-    // Birthday message
-    showBirthdayMessage() {
-        const message = document.getElementById('birthdayMessage');
-        message.style.display = 'flex';
-        setTimeout(() => {
-            message.style.opacity = '0';
-            setTimeout(() => message.style.display = 'none', 1000);
-        }, 2000);
     },
 
     // Secret codes for notes
@@ -57,32 +108,31 @@ const Auth = {
         shaili: "1234"
     },
 
-    // Current note author
-    currentNoteAuthor: null,
-
     // Show code input modal
     showCodeModal() {
         document.getElementById('codeModal').style.display = 'flex';
-        document.getElementById('codeInput').value = '';
-        document.getElementById('codeInput').focus();
+        const codeInput = document.getElementById('codeInput');
+        codeInput.value = '';
+        codeInput.focus();
     },
 
     // Verify secret code
     verifyCode() {
         const code = document.getElementById('codeInput').value;
+        const codeModal = document.getElementById('codeModal');
         
         if (code === this.secretCodes.aviral) {
-            this.currentNoteAuthor = 'aviral';
-            document.getElementById('codeModal').style.display = 'none';
-            window.Notes.saveNote();
+            codeModal.style.display = 'none';
+            return 'aviral';
         } else if (code === this.secretCodes.shaili) {
-            this.currentNoteAuthor = 'shaili';
-            document.getElementById('codeModal').style.display = 'none';
-            window.Notes.saveNote();
+            codeModal.style.display = 'none';
+            return 'shaili';
         } else if (code === '0000') {
             this.showChangeCodeModal();
+            return null;
         } else {
             alert('Incorrect code!');
+            return null;
         }
     },
 
@@ -107,37 +157,6 @@ const Auth = {
             alert('Incorrect old code!');
         }
         document.getElementById('codeModal').style.display = 'none';
-    },
-
-    // Initialize event listeners
-    init() {
-        // Password input enter key
-        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.checkPassword();
-            }
-        });
-
-        // Code input enter key
-        document.getElementById('codeInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.verifyCode();
-            }
-        });
-
-        // Close code modal when clicking outside
-        document.getElementById('codeModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('codeModal')) {
-                document.getElementById('codeModal').style.display = 'none';
-            }
-        });
-
-        // Load saved secret codes
-        const savedCodes = localStorage.getItem('secretCodes');
-        if (savedCodes) {
-            this.secretCodes = JSON.parse(savedCodes);
-        }
     }
 };
 

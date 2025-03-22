@@ -1,4 +1,4 @@
-/* Mobile-first Media Queries */
+/* Mobile Styles */
 @media (max-width: 768px) {
     /* Tabs */
     .tabs button {
@@ -63,9 +63,9 @@
 
     /* Photos Grid */
     .photos-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
-        padding: 5px;
+        padding: 10px;
     }
 
     .photo-item {
@@ -79,8 +79,6 @@
 
     /* Password Input */
     #passwordInput {
-        font-size: 16px;
-        padding: 12px;
         width: 80%;
         max-width: 250px;
     }
@@ -111,10 +109,10 @@
     }
 }
 
-/* Tablet Media Queries */
+/* Tablet Styles */
 @media (min-width: 769px) and (max-width: 1024px) {
     .photos-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 
     .countdown-grid {
@@ -126,14 +124,10 @@
     }
 }
 
-/* Large Screen Media Queries */
+/* Desktop Styles */
 @media (min-width: 1025px) {
     .photos-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .countdown-grid {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 
     .timeline {

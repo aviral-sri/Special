@@ -1,12 +1,12 @@
 /* Fade In Animation */
 @keyframes fadeIn {
-    from { 
-        opacity: 0; 
-        transform: translateY(10px); 
+    from {
+        opacity: 0;
+        transform: translateY(10px);
     }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -37,19 +37,19 @@
     100% { opacity: 0; }
 }
 
-/* Photo Modal Zoom Animation */
+/* Photo Modal Animation */
 @keyframes zoomIn {
-    from { 
-        transform: scale(0.95); 
-        opacity: 0; 
+    from {
+        transform: scale(0.95);
+        opacity: 0;
     }
-    to { 
-        transform: scale(1); 
-        opacity: 1; 
+    to {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 
-/* Anniversary Message Pulse Animation */
+/* Anniversary Message Animation */
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
@@ -60,22 +60,26 @@
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateX(-20px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
     }
 }
 
-/* Apply Animations */
+/* Animation Classes */
 .timeline {
     animation: timelinePopUp 0.8s ease forwards;
     opacity: 0;
 }
 
 .heart {
+    position: fixed;
+    font-size: 20px;
+    color: #e91e63;
     animation: fall linear forwards;
+    z-index: 1999;
 }
 
 #birthdayMessage {
