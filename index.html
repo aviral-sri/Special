@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Mobile-first viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Romantic Timeline</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #fff;
+      color: #333;
+      line-height: 1.6;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    /* Enhanced Tabs Navigation */
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #ffd6e0;
+      box-shadow: 0 2px 4px rgba(233,30,99,0.1);
+    }
+    .tabs button {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+    .tabs button.active {
+      background-color: #fff;
+      border-bottom: 3px solid #e91e63;
+      color: #e91e63;
+      font-weight: bold;
+    }
+    /* Enhanced Tab Contents */
+    .tab-content {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tab-content.active {
+      display: block;
+    }
+    /* Enhanced Timeline Container */
+    .timeline {
+      position: relative;
+      width: 100%;
+      min-height: 500px;
+      margin: 20px 0;
+      background-color: #fff;
+      border-radius: 15px;
+      overflow: visible;
+      box-shadow: 0 4px 8px rgba(233,30,99,0.1);
+      transition: height 0.3s ease;
+      animation: timelinePopUp 0.8s ease forwards;
+      opacity: 0;
+    }
+    /* Timeline SVG styling */
+    .timeline svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    /* Enhanced Event dot styling */
+    .event {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background-color: #e91e63;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 4px rgba(233,30,99,0.3);
+      transition: all 0.3s ease;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .event-date-label {
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: #666;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .event:hover .event-date-label {
+      opacity: 1;
+    }
+    .event:hover {
+      transform: scale(1.1);
+    }
+    .event.preview {
+      opacity: 0.3;
+      cursor: default;
+      background-color: #ffd6e0;
+    }
+    .event.add-event {
+      background-color: #e91e63;
+      font-size: 20px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    /* Event Details Card */
+    .event-details {
+      position: fixed;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      width: 280px;
+      z-index: 1001;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .event-details.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    .event-details .date {
+      color: #e91e63;
+      font-weight: bold;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    .event-details .description {
+      margin-bottom: 15px;
+      line-height: 1.5;
+      color: #333;
+    }
+    .event-details img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .event-details .edit-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      color: #e91e63;
+      cursor: pointer;
+      padding: 8px;
+      font-size: 16px;
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+    }
+    .event-details .delete-btn {
+      position: absolute;
+      top: 15px;
+      right: 50px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      padding: 8px;
+      font-size: 16px;
+      opacity: 0.8;
+      transition: all 0.3s ease;
+    }
+    .event-details .delete-btn:hover {
+      color: #ff0000;
+      opacity: 1;
+    }
+    .event-details::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: -1;
+    }
+    /* Enhanced Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+      transition: opacity 0.3s ease;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 90%;
+      width: 320px;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateY(20px);
+    }
+    .modal.show .modal-content {
+      transform: translateY(0);
+    }
+    /* Enhanced Notes styling */
+    #notesArea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #ffd6e0;
+      border-radius: 12px;
+      font-size: 16px;
+      box-sizing: border-box;
+      resize: vertical;
+      min-height: 120px;
+      transition: border-color 0.3s ease;
+    }
+    #notesArea:focus {
+      outline: none;
+      border-color: #e91e63;
+    }
+    .saved-note {
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      animation: slideIn 0.3s ease;
+    }
+    .saved-note.aviral {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+    }
+    .saved-note.shaili {
+      background: #fff0f5;
+      border-left: 4px solid #e91e63;
+    }
+    .note-author {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .note-author.aviral {
+      color: #2196f3;
+    }
+    .note-author.shaili {
+      color: #e91e63;
+    }
+    /* Code Input Modal */
+    .code-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+    .code-modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 90%;
+      width: 320px;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .code-input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid #ffd6e0;
+      border-radius: 8px;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 4px;
+    }
+    .code-input:focus {
+      outline: none;
+      border-color: #e91e63;
+    }
+    /* Enhanced Photos Tab */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      padding: 10px;
+    }
+    .photo-item {
+      aspect-ratio: 1;
+      background: #f8f8f8;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    .photo-item:hover {
+      transform: scale(1.02);
+    }
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #666;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .btn {
+      background: #e91e63;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+    .btn:hover {
+      background: #d81557;
+    }
+    /* Password Screen */
+    #passwordScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    #passwordInput {
+      padding: 15px;
+      font-size: 18px;
+      border: 2px solid #ffd6e0;
+      border-radius: 8px;
+      width: 200px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    /* Heart Shower */
+    .heart {
+      position: fixed;
+      font-size: 20px;
+      color: #f7f7f7;
+      animation: fall linear forwards;
+      z-index: 1999;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh);
+      }
+    }
+
+    /* Birthday Message */
+    #birthdayMessage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(233,30,99,0.9);
+      color: white;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: bold;
+      text-align: center;
+      z-index: 1998;
+      animation: fadeInOut 2s ease forwards;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Gallery Image Title */
+    .photo-item {
+      position: relative;
+    }
+
+    .photo-title {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px;
+      font-size: 12px;
+      text-align: center;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+
+    /* Photo Modal */
+    #photoModal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.85);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photo-modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 90%;
+      width: 500px;
+      position: relative;
+      animation: zoomIn 0.3s ease;
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .photo-modal-content img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .photo-modal-content .event-info {
+      padding: 15px;
+      background: #fff0f5;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .photo-modal-content .event-date {
+      color: #e91e63;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .photo-modal-content .event-description {
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .photo-modal-close {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      font-size: 24px;
+      color: #e91e63;
+      cursor: pointer;
+      background: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 768px) {
+      .photo-modal-content {
+        width: 95%;
+        margin: 10px;
+        padding: 15px;
+      }
+    }
+
+    /* Mobile-first Media Queries */
+    @media (max-width: 768px) {
+      .tabs button {
+        padding: 12px 8px;
+        font-size: 14px;
+      }
+
+      .tab-content {
+        padding: 15px 10px;
+      }
+
+      h2 {
+        font-size: 20px;
+        margin: 10px 0;
+      }
+
+      .timeline {
+        margin: 10px 0;
+        min-height: 400px;
+      }
+
+      .event {
+        width: 28px;
+        height: 28px;
+        touch-action: manipulation;
+      }
+
+      .event-details {
+        width: 200px;
+        font-size: 14px;
+      }
+
+      .event-details.left,
+      .event-details.right {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+      }
+
+      .modal-content {
+        width: 90%;
+        max-width: 300px;
+        padding: 20px;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        font-size: 16px;
+        padding: 10px;
+      }
+
+      .btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .photos-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 5px;
+      }
+
+      .photo-item {
+        aspect-ratio: 1;
+      }
+
+      .photo-title {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      #passwordInput {
+        font-size: 16px;
+        padding: 12px;
+        width: 80%;
+        max-width: 250px;
+      }
+
+      #birthdayMessage {
+        font-size: 28px;
+        padding: 20px;
+      }
+    }
+
+    /* Countdown Timer Styles */
+    .countdown-container {
+      background: linear-gradient(135deg, #ff6b9c, #e91e63);
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px 0;
+      box-shadow: 0 4px 15px rgba(233, 30, 99, 0.2);
+      color: white;
+      text-align: center;
+    }
+
+    .countdown-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .countdown-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+    }
+
+    .countdown-item .count {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .countdown-item .label {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 768px) {
+      .countdown-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .countdown-item .count {
+        font-size: 28px;
+      }
+      
+      .countdown-item .label {
+        font-size: 12px;
+      }
+    }
+
+    /* Anniversary Message Styles */
+    .anniversary-message {
+      background: linear-gradient(135deg, #ff6b9c, #e91e63);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      display: none;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .test-anniversary-btn {
+      background: #e91e63;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .test-anniversary-btn:hover {
+      background: #d81557;
+    }
+
+    /* Timeline animation */
+    @keyframes timelinePopUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .timeline {
+      animation: timelinePopUp 0.8s ease forwards;
+      opacity: 0;
+    }
+
+    /* Enhanced transitions */
+    .event-details {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal {
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-content {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal.show .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-content {
+      transform: translateY(20px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Password Screen -->
+  <div id="passwordScreen">
+    <h2>Enter Password</h2>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button class="btn" onclick="checkPassword()">Enter</button>
+  </div>
+
+  <!-- Birthday Message -->
+  <div id="birthdayMessage">
+    Happy Birthday Shailu! ❤️
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs">
+    <button class="tab-link active" data-tab="timelineTab">Timeline</button>
+    <button class="tab-link" data-tab="notesTab">Notes</button>
+    <button class="tab-link" data-tab="photosTab">Photos</button>
+  </div>
+
+  <!-- Tab Contents -->
+  <div id="timelineTab" class="tab-content active">
+    <div class="anniversary-message" id="anniversaryMessage">
+      Happy Anniversary! ❤️
+    </div>
+    <div class="countdown-container">
+      <div class="countdown-title">Time Together</div>
+      <div class="countdown-grid">
+        <div class="countdown-item">
+          <div class="count" id="years">0</div>
+          <div class="label">Years</div>
+        </div>
+        <div class="countdown-item">
+          <div class="count" id="months">0</div>
+          <div class="label">Months</div>
+        </div>
+        <div class="countdown-item">
+          <div class="count" id="days">0</div>
+          <div class="label">Days</div>
+        </div>
+        <div class="countdown-item">
+          <div class="count" id="hours">0</div>
+          <div class="label">Hours</div>
+        </div>
+        <div class="countdown-item">
+          <div class="count" id="minutes">0</div>
+          <div class="label">Minutes</div>
+        </div>
+        <div class="countdown-item">
+          <div class="count" id="seconds">0</div>
+          <div class="label">Seconds</div>
+        </div>
+      </div>
+    </div>
+    <h2>Our Relationship Timeline</h2>
+    <div class="timeline" id="timeline">
+      <svg id="timelineSVG">
+        <path id="timelinePath" 
+          stroke="#e91e63" stroke-width="2" stroke-dasharray="4,4" fill="none" />
+      </svg>
+      <!-- Event dots will be added dynamically -->
+    </div>
+  </div>
+
+  <div id="notesTab" class="tab-content">
+    <h2>Notes</h2>
+    <textarea id="notesArea" rows="5" placeholder="Write your special moments here..."></textarea>
+    <button id="saveNotesBtn" class="btn">Save Notes</button>
+    <div class="notes-container" id="notesContainer">
+      <!-- Saved notes will be shown here -->
+    </div>
+  </div>
+
+  <div id="photosTab" class="tab-content">
+    <h2>Photos</h2>
+    <div class="photos-grid" id="photosContainer">
+      <!-- Photo items will be added here -->
+    </div>
+    <button id="addPhotoBtn" class="btn" style="margin-top: 15px;">Add Photo</button>
+  </div>
+
+  <!-- Enhanced Modal Popup for Event Details -->
+  <div class="modal" id="eventModal">
+    <div class="modal-content">
+      <span class="close" id="modalClose">&times;</span>
+      <h3>Event Details</h3>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="eventDate">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="eventDescription" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Photo</label>
+        <input type="file" id="eventPhoto" accept="image/*">
+      </div>
+      <button class="btn" id="saveEventBtn">Save Event</button>
+    </div>
+  </div>
+
+  <!-- Photo Modal -->
+  <div id="photoModal" class="modal">
+    <div class="photo-modal-content">
+      <span class="photo-modal-close">&times;</span>
+      <img id="modalImage" src="" alt="Event Photo">
+      <div class="event-info">
+        <div class="event-date" id="modalEventDate"></div>
+        <div class="event-description" id="modalEventDescription"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Input Modal -->
+  <div class="code-modal" id="codeModal">
+    <div class="code-modal-content">
+      <h3>Enter Secret Code</h3>
+      <input type="password" class="code-input" id="codeInput" maxlength="4" placeholder="****">
+      <button class="btn" id="verifyCodeBtn">Verify</button>
+    </div>
+  </div>
+
+  <script>
+    // Hide main content initially
+    document.querySelectorAll('.tabs, .tab-content').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    // Anniversary message functionality
+    function checkAnniversary() {
+      const today = new Date();
+      const month = today.getMonth() + 1; // getMonth() returns 0-11
+      const day = today.getDate();
+      
+      if (month === 8 && day === 2) {
+        showAnniversaryMessage();
+      }
+    }
+
+    function showAnniversaryMessage() {
+      const message = document.getElementById('anniversaryMessage');
+      message.style.display = 'block';
+      
+      // Hide message after 24 hours
+      setTimeout(() => {
+        message.style.display = 'none';
+      }, 24 * 60 * 60 * 1000);
+    }
+
+    // Check for anniversary when page loads
+    window.addEventListener('load', checkAnniversary);
+
+    // Password Protection
+    function checkPassword() {
+      const password = document.getElementById('passwordInput').value;
+      if (password === 'KRISHNA') {
+        document.getElementById('passwordScreen').style.display = 'none';
+        showHeartShower();
+        showBirthdayMessage();
+        
+        // Show main content after delay
+        setTimeout(() => {
+          document.querySelectorAll('.tabs, .tab-content').forEach(el => {
+            el.style.display = '';
+          });
+          // Initial renders
+          updateCountdown();
+          checkAnniversary(); // Check for anniversary
+          renderTimeline();
+          renderPhotos();
+          renderNotes(JSON.parse(localStorage.getItem('notes')) || []);
+        }, 2000);
+      } else {
+        alert('Incorrect password!');
+      }
+    }
+
+    // Handle Enter key in password input
+    document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        checkPassword();
+      }
+    });
+
+    // Heart Shower Animation with more hearts and longer duration
+    function showHeartShower() {
+      for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.className = 'heart';
+          heart.innerHTML = '❤️';
+          heart.style.left = Math.random() * 100 + 'vw';
+          heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+          document.body.appendChild(heart);
+          
+          setTimeout(() => heart.remove(), 5000);
+        }, i * 50);
+      }
+    }
+
+    // Enhanced Birthday Message with better timing
+    function showBirthdayMessage() {
+      const message = document.getElementById('birthdayMessage');
+      message.style.display = 'flex';
+      setTimeout(() => {
+        message.style.opacity = '0';
+        setTimeout(() => message.style.display = 'none', 1000);
+      }, 2000);
+    }
+
+    // Remove initial window load event listener since we'll render after password
+    window.removeEventListener('load', renderTimeline);
+
+    // Tab switching functionality with animation
+    document.querySelectorAll('.tab-link').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(button.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Enhanced Modal functionality
+    const modal = document.getElementById('eventModal');
+    const modalClose = document.getElementById('modalClose');
+    const eventDate = document.getElementById('eventDate');
+    const eventDescription = document.getElementById('eventDescription');
+    const eventPhoto = document.getElementById('eventPhoto');
+    const saveEventBtn = document.getElementById('saveEventBtn');
+
+    // Store events in localStorage
+    let events = JSON.parse(localStorage.getItem('events')) || {
+      "1": { date: "2024-01-01", description: "We met on a sunny day in June." },
+      "2": { date: "2024-02-01", description: "Our first date at a cozy café." },
+      "3": { date: "2024-03-01", description: "A memorable weekend getaway." },
+      "4": { date: "2024-04-01", description: "Our anniversary celebration." }
+    };
+
+    // Store photos in localStorage
+    let photos = JSON.parse(localStorage.getItem('photos')) || [];
+
+    // Enhanced Timeline functionality
+    const timeline = document.getElementById('timeline');
+    const timelineSVG = document.getElementById('timelineSVG');
+    const timelinePath = document.getElementById('timelinePath');
+    
+    // Calculate positions for timeline events
+    function calculateEventPosition(index, total) {
+      const padding = window.innerWidth <= 768 ? 40 : 60;
+      const width = timeline.clientWidth - (padding * 2);
+      const dotSpacing = width * (window.innerWidth <= 768 ? 0.3 : 0.4);
+      const rowHeight = window.innerWidth <= 768 ? 100 : 120;
+      
+      const row = Math.floor(index / 2);
+      const isLeft = index % 2 === 0;
+      
+      const x = padding + (isLeft ? dotSpacing : width - dotSpacing);
+      const y = padding + (row * rowHeight);
+      
+      return { x, y, isLeft };
+    }
+
+    // Create SVG path for S-curve
+    function createPath(points) {
+      let path = '';
+      points.forEach((point, i) => {
+        if (i === 0) {
+          path += `M ${point.x},${point.y}`;
+        } else {
+          const prevPoint = points[i - 1];
+          const midY = (prevPoint.y + point.y) / 2;
+          
+          // Create smooth curve using cubic bezier
+          path += ` C ${prevPoint.x},${midY} ${point.x},${midY} ${point.x},${point.y}`;
+        }
+      });
+      return path;
+    }
+
+    // Show event details with touch support
+    function showEventDetails(dot, event) {
+      // Remove any existing details
+      const existingDetails = document.querySelectorAll('.event-details');
+      existingDetails.forEach(el => el.remove());
+
+      const details = document.createElement('div');
+      details.className = 'event-details';
+      
+      details.innerHTML = `
+        <div class="date">${new Date(event.date).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })}</div>
+        <div class="description">${event.description}</div>
+        ${event.photo ? `<img src="${event.photo}" alt="Event memory">` : ''}
+        <button class="delete-btn">🗑️ Delete</button>
+        <button class="edit-btn">✎ Edit</button>
+      `;
+
+      document.body.appendChild(details);
+      
+      // Force reflow to trigger animation
+      details.offsetHeight;
+      details.classList.add('visible');
+
+      // Enhanced touch/click handling with smooth transitions
+      details.querySelector('.edit-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        details.classList.remove('visible');
+        setTimeout(() => {
+          details.remove();
+          document.querySelectorAll('.event').forEach(d => d.classList.remove('active'));
+          dot.classList.add('active');
+          eventDate.value = event.date || '';
+          eventDescription.value = event.description || '';
+          modal.style.display = "flex";
+          setTimeout(() => modal.classList.add('show'), 10);
+        }, 300);
+      });
+
+      // Add delete button handler
+      details.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (confirm('Are you sure you want to delete this event?')) {
+          const eventId = dot.getAttribute('data-event');
+          
+          // If event has a photo, remove it from photos array
+          if (events[eventId].photo) {
+            const photoIndex = photos.findIndex(p => p.src === events[eventId].photo);
+            if (photoIndex !== -1) {
+              photos.splice(photoIndex, 1);
+              localStorage.setItem('photos', JSON.stringify(photos));
+              renderPhotos();
+            }
+          }
+          
+          // Remove event
+          delete events[eventId];
+          localStorage.setItem('events', JSON.stringify(events));
+          
+          // Close details and re-render timeline
+          details.classList.remove('visible');
+          setTimeout(() => {
+            details.remove();
+            renderTimeline();
+          }, 300);
+        }
+      });
+
+      // Close on background tap/click
+      const closeHandler = (e) => {
+        if (!details.contains(e.target) && !dot.contains(e.target)) {
+          details.classList.remove('visible');
+          setTimeout(() => details.remove(), 300);
+          document.removeEventListener('click', closeHandler);
+          document.removeEventListener('touchend', closeHandler);
+        }
+      };
+
+      // Add event listeners after a small delay to prevent immediate closing
+      setTimeout(() => {
+        document.addEventListener('click', closeHandler);
+        document.addEventListener('touchend', closeHandler);
+      }, 100);
+    }
+
+    // Render timeline events
+    function renderTimeline() {
+      // Clear existing events
+      timeline.querySelectorAll('.event').forEach(el => el.remove());
+      
+      // Convert events object to array and sort by date
+      const sortedEvents = Object.entries(events)
+        .map(([id, event]) => ({ id, ...event }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      const eventCount = sortedEvents.length;
+      const totalDots = eventCount + 3; // Add 3 preview dots
+      
+      // Calculate required height
+      const rows = Math.ceil(totalDots / 2);
+      timeline.style.height = `${rows * 120 + 120}px`; // Add padding
+      
+      // Generate points for the SVG path
+      let pathPoints = [];
+      
+      // Add actual events
+      sortedEvents.forEach((event, index) => {
+        const pos = calculateEventPosition(index, totalDots);
+        pathPoints.push(pos);
+        
+        const dot = document.createElement('div');
+        dot.className = 'event';
+        dot.setAttribute('data-event', event.id);
+        dot.setAttribute('data-position', pos.isLeft ? 'left' : 'right');
+        dot.style.left = `${pos.x - 12}px`;
+        dot.style.top = `${pos.y - 12}px`;
+        
+        // Add date label
+        const dateLabel = document.createElement('div');
+        dateLabel.className = 'event-date-label';
+        dateLabel.textContent = new Date(event.date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric'
+        });
+        dot.appendChild(dateLabel);
+        
+        timeline.appendChild(dot);
+        
+        // Add click event with smooth transition
+      dot.addEventListener('click', function() {
+          this.style.transform = 'scale(1.1)';
+          setTimeout(() => {
+            this.style.transform = 'scale(1)';
+            showEventDetails(this, event);
+          }, 200);
+        });
+      });
+      
+      // Add preview dots
+      for(let i = eventCount; i < eventCount + 2; i++) {
+        const pos = calculateEventPosition(i, totalDots);
+        pathPoints.push(pos);
+        
+        const previewDot = document.createElement('div');
+        previewDot.className = 'event preview';
+        previewDot.style.left = `${pos.x - 12}px`;
+        previewDot.style.top = `${pos.y - 12}px`;
+        timeline.appendChild(previewDot);
+      }
+      
+      // Add the + button as the last dot
+      const lastPos = calculateEventPosition(totalDots - 1, totalDots);
+      pathPoints.push(lastPos);
+      
+      const addButton = document.createElement('div');
+      addButton.className = 'event add-event';
+      addButton.innerHTML = '+';
+      addButton.style.left = `${lastPos.x - 12}px`;
+      addButton.style.top = `${lastPos.y - 12}px`;
+      timeline.appendChild(addButton);
+      
+      // Update SVG path
+      timelinePath.setAttribute('d', createPath(pathPoints));
+      
+      // Add click event for add button with smooth transition
+      addButton.addEventListener('click', () => {
+        addButton.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          addButton.style.transform = 'scale(1)';
+          const newId = (Math.max(...Object.keys(events).map(Number), 0) + 1).toString();
+          eventDate.value = new Date().toISOString().split('T')[0];
+          eventDescription.value = '';
+          eventPhoto.value = ''; // Clear photo input
+          document.querySelectorAll('.event').forEach(d => d.classList.remove('active'));
+          addButton.classList.add('active');
+        modal.style.display = "flex";
+          setTimeout(() => modal.classList.add('show'), 10);
+          
+          // Remove any existing save handler
+          saveEventBtn.removeEventListener('click', saveEventBtn.saveHandler);
+          
+          // Create new save handler
+          saveEventBtn.saveHandler = () => {
+            const newEvent = {
+              date: eventDate.value,
+              description: eventDescription.value,
+              title: eventDescription.value.split('.')[0]
+            };
+            
+            // Handle photo upload if present
+            if (eventPhoto.files && eventPhoto.files[0]) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                newEvent.photo = e.target.result;
+                events[newId] = newEvent;
+                
+                // Add to photos gallery
+                photos.push({
+                  src: e.target.result,
+                  title: newEvent.title,
+                  date: newEvent.date,
+                  description: newEvent.description
+                });
+                
+                localStorage.setItem('events', JSON.stringify(events));
+                localStorage.setItem('photos', JSON.stringify(photos));
+                
+                modal.classList.remove('show');
+                setTimeout(() => {
+                  modal.style.display = "none";
+                  renderTimeline();
+                  renderPhotos();
+                }, 300);
+              };
+              reader.readAsDataURL(eventPhoto.files[0]);
+            } else {
+              events[newId] = newEvent;
+              localStorage.setItem('events', JSON.stringify(events));
+              
+              modal.classList.remove('show');
+              setTimeout(() => {
+                modal.style.display = "none";
+                renderTimeline();
+              }, 300);
+            }
+          };
+          
+          // Add the new save handler
+          saveEventBtn.addEventListener('click', saveEventBtn.saveHandler);
+        }, 200);
+      });
+    }
+
+    // Initial render
+    window.addEventListener('resize', renderTimeline);
+
+    saveEventBtn.addEventListener('click', () => {
+      const currentEvent = document.querySelector('.event.active');
+      if (currentEvent) {
+        const id = currentEvent.getAttribute('data-event');
+        const photoInput = document.getElementById('eventPhoto');
+        
+        // Handle photo upload
+        if (photoInput.files && photoInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const photoData = e.target.result;
+            const eventDetails = {
+              date: eventDate.value,
+              description: eventDescription.value,
+              photo: photoData,
+              title: eventDescription.value.split('.')[0]
+            };
+            
+            events[id] = eventDetails;
+            
+            // Add to photos gallery with event details
+            photos.push({
+              src: photoData,
+              title: eventDetails.title,
+              date: eventDetails.date,
+              description: eventDetails.description
+            });
+            
+            localStorage.setItem('events', JSON.stringify(events));
+            localStorage.setItem('photos', JSON.stringify(photos));
+            
+            renderTimeline(); // Re-render to sort the updated event
+            renderPhotos();
+            modal.style.display = "none";
+          };
+          reader.readAsDataURL(photoInput.files[0]);
+        } else {
+          events[id] = {
+            date: eventDate.value,
+            description: eventDescription.value,
+            photo: events[id]?.photo || null,
+            title: eventDescription.value.split('.')[0]
+          };
+          localStorage.setItem('events', JSON.stringify(events));
+          renderTimeline(); // Re-render to sort the updated event
+          modal.style.display = "none";
+        }
+      }
+    });
+
+    modalClose.addEventListener('click', () => {
+      modal.style.display = "none";
+    });
+
+    window.addEventListener('click', event => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    // Enhanced Notes functionality
+    const notesArea = document.getElementById('notesArea');
+    const saveNotesBtn = document.getElementById('saveNotesBtn');
+    const notesContainer = document.getElementById('notesContainer');
+
+    window.addEventListener('load', () => {
+      const savedNotes = JSON.parse(localStorage.getItem('notes')) || [];
+      renderNotes(savedNotes);
+      if(savedNotes.length > 0) {
+        notesArea.value = savedNotes.join("\n\n---\n\n");
+      }
+    });
+
+    // Secret codes for notes
+    let secretCodes = JSON.parse(localStorage.getItem('secretCodes')) || {
+      aviral: "0987",
+      shaili: "1234"
+    };
+
+    // Current note author
+    let currentNoteAuthor = null;
+
+    // Show code input modal
+    function showCodeModal() {
+      document.getElementById('codeModal').style.display = 'flex';
+      document.getElementById('codeInput').value = '';
+      document.getElementById('codeInput').focus();
+    }
+
+    // Verify secret code
+    function verifyCode() {
+      const code = document.getElementById('codeInput').value;
+      
+      if (code === secretCodes.aviral) {
+        currentNoteAuthor = 'aviral';
+        document.getElementById('codeModal').style.display = 'none';
+        saveNote();
+      } else if (code === secretCodes.shaili) {
+        currentNoteAuthor = 'shaili';
+        document.getElementById('codeModal').style.display = 'none';
+        saveNote();
+      } else if (code === '0000') { // Special code to change passwords
+        showChangeCodeModal();
+      } else {
+        alert('Incorrect code!');
+      }
+    }
+
+    // Add event listeners for code verification
+    document.getElementById('verifyCodeBtn').addEventListener('click', verifyCode);
+    document.getElementById('codeInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        verifyCode();
+      }
+    });
+
+    // Close code modal when clicking outside
+    document.getElementById('codeModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('codeModal')) {
+        document.getElementById('codeModal').style.display = 'none';
+      }
+    });
+
+    // Show change code modal
+    function showChangeCodeModal() {
+      const oldCode = prompt('Enter old code to change:');
+      if (oldCode === secretCodes.aviral) {
+        const newCode = prompt('Enter new 4-digit code for Aviral:');
+        if (newCode && newCode.length === 4) {
+          secretCodes.aviral = newCode;
+          localStorage.setItem('secretCodes', JSON.stringify(secretCodes));
+          alert('Aviral\'s code updated successfully!');
+        }
+      } else if (oldCode === secretCodes.shaili) {
+        const newCode = prompt('Enter new 4-digit code for Shaili:');
+        if (newCode && newCode.length === 4) {
+          secretCodes.shaili = newCode;
+          localStorage.setItem('secretCodes', JSON.stringify(secretCodes));
+          alert('Shaili\'s code updated successfully!');
+        }
+      } else {
+        alert('Incorrect old code!');
+      }
+      document.getElementById('codeModal').style.display = 'none';
+    }
+
+    // Modified save notes functionality
+    saveNotesBtn.addEventListener('click', () => {
+      const noteText = notesArea.value.trim();
+      if (noteText) {
+        showCodeModal();
+      }
+    });
+
+    function saveNote() {
+      const noteText = notesArea.value.trim();
+      if (noteText) {
+        const notes = JSON.parse(localStorage.getItem('notes')) || [];
+        notes.push({
+          text: noteText,
+          author: currentNoteAuthor,
+          date: new Date().toISOString()
+        });
+        localStorage.setItem('notes', JSON.stringify(notes));
+        renderNotes(notes);
+        notesArea.value = '';
+      }
+    }
+
+    // Modified render notes function
+    function renderNotes(notes) {
+      notesContainer.innerHTML = "";
+      notes.forEach(note => {
+        const noteDiv = document.createElement('div');
+        noteDiv.classList.add('saved-note', note.author);
+        
+        const authorDiv = document.createElement('div');
+        authorDiv.classList.add('note-author', note.author);
+        authorDiv.textContent = note.author === 'aviral' ? 'Aviral:' : 'Shaili:';
+        
+        const textDiv = document.createElement('div');
+        textDiv.textContent = note.text;
+        
+        noteDiv.appendChild(authorDiv);
+        noteDiv.appendChild(textDiv);
+        notesContainer.appendChild(noteDiv);
+      });
+    }
+
+    // Photos functionality
+    const photosContainer = document.getElementById('photosContainer');
+    const addPhotoBtn = document.getElementById('addPhotoBtn');
+    const photoModal = document.getElementById('photoModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalEventDate = document.getElementById('modalEventDate');
+    const modalEventDescription = document.getElementById('modalEventDescription');
+
+    // Close photo modal
+    document.querySelector('.photo-modal-close').addEventListener('click', () => {
+      photoModal.style.display = 'none';
+    });
+
+    // Close on outside click
+    photoModal.addEventListener('click', (e) => {
+      if (e.target === photoModal) {
+        photoModal.style.display = 'none';
+      }
+    });
+
+    // Show photo details
+    function showPhotoDetails(photo) {
+      modalImage.src = photo.src;
+      modalEventDate.textContent = photo.date ? new Date(photo.date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : '';
+      modalEventDescription.textContent = photo.description || photo.title;
+      photoModal.style.display = 'flex';
+    }
+
+    // Render photos gallery with event details
+    function renderPhotos() {
+      const container = document.getElementById('photosContainer');
+      container.innerHTML = '';
+      
+      photos.forEach(photo => {
+        const photoItem = document.createElement('div');
+        photoItem.className = 'photo-item';
+        photoItem.innerHTML = `
+          <img src="${photo.src}" alt="${photo.title}">
+          <div class="photo-title">${photo.title}</div>
+        `;
+        
+        // Add click event to show details
+        photoItem.addEventListener('click', () => showPhotoDetails(photo));
+        
+        container.appendChild(photoItem);
+      });
+    }
+
+    // Update standalone photo addition
+    addPhotoBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const title = prompt('Enter a title for this photo:');
+            if (title) {
+              photos.push({
+                src: e.target.result,
+                title: title,
+                date: new Date().toISOString().split('T')[0],
+                description: title
+              });
+              localStorage.setItem('photos', JSON.stringify(photos));
+              renderPhotos();
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    });
+
+    // Add countdown timer function
+    function updateCountdown() {
+      const startDate = new Date('2020-08-02T15:00:00');
+      const now = new Date();
+      const diff = now - startDate;
+
+      const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+      const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30.44));
+      const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById('years').textContent = years;
+      document.getElementById('months').textContent = months;
+      document.getElementById('days').textContent = days;
+      document.getElementById('hours').textContent = hours;
+      document.getElementById('minutes').textContent = minutes;
+      document.getElementById('seconds').textContent = seconds;
+    }
+
+    // Update countdown every second
+    setInterval(updateCountdown, 1000);
+    updateCountdown(); // Initial call
+  </script>
+</body>
+</html>

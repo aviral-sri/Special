@@ -1,0 +1,173 @@
+/* Mobile-first Media Queries */
+@media (max-width: 768px) {
+    /* Tabs */
+    .tabs button {
+        padding: 12px 8px;
+        font-size: 14px;
+    }
+
+    .tab-content {
+        padding: 15px 10px;
+    }
+
+    h2 {
+        font-size: 20px;
+        margin: 10px 0;
+    }
+
+    /* Timeline */
+    .timeline {
+        margin: 10px 0;
+        min-height: 400px;
+    }
+
+    .event {
+        width: 28px;
+        height: 28px;
+        touch-action: manipulation;
+    }
+
+    .event-details {
+        width: 200px;
+        font-size: 14px;
+    }
+
+    .event-details.left,
+    .event-details.right {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+    }
+
+    /* Modals */
+    .modal-content {
+        width: 90%;
+        max-width: 300px;
+        padding: 20px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        font-size: 16px;
+        padding: 10px;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* Photos Grid */
+    .photos-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 5px;
+    }
+
+    .photo-item {
+        aspect-ratio: 1;
+    }
+
+    .photo-title {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    /* Password Input */
+    #passwordInput {
+        font-size: 16px;
+        padding: 12px;
+        width: 80%;
+        max-width: 250px;
+    }
+
+    /* Birthday Message */
+    #birthdayMessage {
+        font-size: 28px;
+        padding: 20px;
+    }
+
+    /* Countdown Timer */
+    .countdown-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .countdown-item .count {
+        font-size: 28px;
+    }
+    
+    .countdown-item .label {
+        font-size: 12px;
+    }
+
+    /* Anniversary Message */
+    .anniversary-message {
+        font-size: 20px;
+        padding: 10px;
+    }
+}
+
+/* Tablet Media Queries */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .photos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .countdown-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .event-details {
+        width: 240px;
+    }
+}
+
+/* Large Screen Media Queries */
+@media (min-width: 1025px) {
+    .photos-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .countdown-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .timeline {
+        max-width: 1200px;
+        margin: 20px auto;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .tabs,
+    .btn,
+    .event-details .edit-btn,
+    .event-details .delete-btn,
+    #passwordScreen,
+    #birthdayMessage,
+    .anniversary-message {
+        display: none !important;
+    }
+
+    .tab-content {
+        display: block !important;
+        page-break-inside: avoid;
+    }
+
+    .timeline {
+        break-inside: avoid;
+    }
+
+    .photos-grid {
+        break-inside: avoid;
+    }
+
+    .saved-note {
+        break-inside: avoid;
+    }
+} 
